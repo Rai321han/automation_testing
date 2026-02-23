@@ -1,7 +1,7 @@
 asgiref==3.11.1
 certifi==2026.1.4
 charset-normalizer==3.4.4
-Django==6.0.2
+Django==5.2.11
 greenlet==3.3.1
 idna==3.11
 iniconfig==2.3.0

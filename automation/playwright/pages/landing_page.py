@@ -36,7 +36,10 @@ class LandingPage:
         self,
         url,
     ):
+        # make sure network network reuest completes
         self.page.goto(url, wait_until="domcontentloaded")
+
+
 
     def handle_popups(self, timeout=5000):
         try:

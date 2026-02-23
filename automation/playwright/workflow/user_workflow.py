@@ -49,6 +49,7 @@ class UserWorkflow(BaseWorkflow):
                 "Turkey",
             ]
             country = random.choice(countries)
+            
             # type country in the input field
             landing.type_location(text=country, delay=200)
             landing.page.wait_for_timeout(2000)
@@ -100,9 +101,14 @@ class UserWorkflow(BaseWorkflow):
                 adults=adults,
                 children=children,
                 infants=infants,
-                pets=pets,
             )
 
+            properties =  resultPage.extract_properties()
+            self.log_step(f"Extracted properties: {len(properties)} properties found")
+            # show extracted properties in log
+            for i, property in enumerate(properties):
+                self.log_step(f"Property {i+1}: {property['title']} - {property['price']}")
+                
             self.log_step("Workflow completed successfully")
             return {"status": "PASS", "screenshot": "not taken", "error": None}
 
