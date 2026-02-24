@@ -3,6 +3,7 @@ from automation.playwright.pages.landing_page import LandingPage
 from automation.playwright.core.base_workflow import BaseWorkflow
 import random
 
+from automation.playwright.pages.propertyDetails import PropertyDetailsPage
 from automation.playwright.pages.result_page import ResultPage
 
 
@@ -14,7 +15,7 @@ class UserWorkflow(BaseWorkflow):
 
             landing = LandingPage(self.page)
             resultPage = ResultPage(self.page)
-
+            propertyDetails = PropertyDetailsPage(self.page)
             self.log_step("Opening landing page")
 
             # land on home page
@@ -49,7 +50,7 @@ class UserWorkflow(BaseWorkflow):
                 "Turkey",
             ]
             country = random.choice(countries)
-            
+
             # type country in the input field
             landing.type_location(text=country, delay=200)
             landing.page.wait_for_timeout(2000)
@@ -103,12 +104,25 @@ class UserWorkflow(BaseWorkflow):
                 infants=infants,
             )
 
-            properties =  resultPage.extract_properties()
+            properties = resultPage.extract_properties()
             self.log_step(f"Extracted properties: {len(properties)} properties found")
             # show extracted properties in log
             for i, property in enumerate(properties):
-                self.log_step(f"Property {i+1}: {property['title']} - {property['price']}")
-                
+                self.log_step(
+                    f"Property {i+1}: {property['title']} - {property['price']}"
+                )
+
+            proeprtyNo, new_page = resultPage.click_random_property()
+            self.log_step(
+                f"Clicking random property index: {proeprtyNo} from the results page"
+            )
+
+            propertyDetailPage = PropertyDetailsPage(new_page)
+            propertyDetailPage.handle_popups()
+            property_data = propertyDetailPage.get_property_data()
+            self.log_step(
+                f"Extracted property details: Title: {property_data['title']}, Subtitle: {property_data['subtitle']}, Images: {len(property_data['images'])} images found"
+            )
             self.log_step("Workflow completed successfully")
             return {"status": "PASS", "screenshot": "not taken", "error": None}
 

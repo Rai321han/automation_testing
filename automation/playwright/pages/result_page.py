@@ -1,6 +1,7 @@
 from automation.playwright.utils.helper import format_airbnb_date
 import random
 
+
 class ResultPage:
 
     def __init__(self, page):
@@ -130,9 +131,8 @@ class ResultPage:
             '[data-xray-jira-component="Guest: Listing Cards"]'
         )
 
-        properties = container.locator(
-            '[data-testid="card-container"]'
-        ).evaluate_all("""
+        properties = container.locator('[data-testid="card-container"]').evaluate_all(
+            """
         (cards) => {
             return cards.map(card => {
 
@@ -171,39 +171,37 @@ class ResultPage:
                 };
             });
         }
-        """)
+        """
+        )
 
         return properties
-    
 
-    def click_random_property(self):
-        # Wait until cards are visible
-        self.page.wait_for_selector('[data-testid="card-container"]')
+    def click_random_property(self, timeout=10000):
 
-        # Scope to listing container (safer)
         container = self.page.locator(
             '[data-xray-jira-component="Guest: Listing Cards"]'
         )
 
-        cards = container.locator('[data-testid="card-container"]')
+        first_card = container.locator('[data-testid="card-container"]').first
+        first_card.wait_for(state="visible", timeout=timeout)
 
+        cards = container.locator('[data-testid="card-container"]')
         count = cards.count()
+
+        print(f"Total properties found: {count}")
 
         if count == 0:
             raise Exception("No property cards found.")
 
-        # Pick random index
         random_index = random.randint(0, count - 1)
-
-        self.log_step(f"Clicking random property index: {random_index + 1} of {count}")
-
         selected_card = cards.nth(random_index)
 
-        # Optional: scroll into view (prevents click interception issues)
-        selected_card.scroll_into_view_if_needed()
+        # ⭐ capture new tab
+        with self.page.context.expect_page() as new_page_info:
+            selected_card.click()
 
-        # Click the first link inside the card
-        selected_card.locator("a").first.click()
+        new_page = new_page_info.value
 
-        # Wait for navigation to complete
-        self.page.wait_for_load_state("networkidle")
+        new_page.wait_for_load_state("domcontentloaded")
+
+        return random_index, new_page
