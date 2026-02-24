@@ -282,7 +282,7 @@ class UserWorkflow(BaseWorkflow):
 
             # ── 21. Verify results page reflects search criteria ──────────────
             results_location = self.page.get_by_test_id("little-search-location")
-            self.run_step(
+            verification_results = self.run_step(
                 "Verify selected dates and guest count appear in the page UI correctly",
                 resultPage.verify_results_page,
                 location=location,
@@ -292,7 +292,7 @@ class UserWorkflow(BaseWorkflow):
                 children=children,
                 infants=infants,
                 locator=results_location,
-                comment_fn=lambda result: f"search criteria verified: location={location}, check-in={check_in.date()}, check-out={check_out.date()}, guests={adults + children}",
+                comment_fn=lambda results: f"search criteria verified: {' | '.join(results)}",
             )
 
             # ── 22. Verify dates and guests in URL ──────────────────────────────
