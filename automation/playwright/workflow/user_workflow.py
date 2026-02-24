@@ -94,6 +94,18 @@ class UserWorkflow(BaseWorkflow):
                 comment_fn=lambda result: "auto-suggestion list appears correctly",
             )
 
+            # ── 6.1 Verify each suggestion item has an icon ────────────────────
+            self.run_step(
+                "Auto-suggestion list items has icon",
+                lambda: landing.verify_suggestion_item_has_icon(0),
+                locator=suggestions_listbox,
+                comment_fn=lambda result: (
+                    "first suggestion item has an icon"
+                    if result
+                    else "first suggestion item does NOT have an icon"
+                ),
+            )
+
             # ── 7. Extract all suggestion options ───────────────────────────────
             def get_all_suggestions():
                 items = self.page.get_by_role("option").all_text_contents()
@@ -101,7 +113,7 @@ class UserWorkflow(BaseWorkflow):
                     raise Exception("No suggestion options found in listbox")
                 return items
 
-            suggestions = self.run_step(
+            self.run_step(
                 "Extract all suggestion items from the list",
                 get_all_suggestions,
                 locator=suggestions_listbox,
@@ -225,11 +237,9 @@ class UserWorkflow(BaseWorkflow):
             )
 
             # ── 16. Set guest counts ──────────────────────────────────────────
-            adults_stepper = self.page.get_by_test_id("stepper-adults-increase-button")
             adults, children, infants, pets = self.run_step(
                 "Set guest counts (adults, children, infants, pets)",
                 landing.set_guests,
-                locator=adults_stepper,
                 comment_fn=lambda counts: f"guests: adults={counts[0]}, children={counts[1]}, infants={counts[2]}, pets={counts[3]}",
             )
 

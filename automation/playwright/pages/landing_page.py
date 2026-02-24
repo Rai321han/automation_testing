@@ -16,6 +16,8 @@ class LandingPage:
             "structured-search-input-field-query"
         )
 
+        self.options = self.page.get_by_role("option")
+
         # All months container
         self.calendar = page.locator('[aria-label="Calendar"]')
 
@@ -65,13 +67,25 @@ class LandingPage:
         self.locationInput.type(text, delay=delay)
 
     def select_random_suggestion(self):
-        self.options = self.page.get_by_role("option")
+
         random_index = random.randint(0, self.options.count() - 1)
         self.options.nth(random_index).click()
         # return the text of the selected option for later verification
         selectedLocation = self.options.nth(random_index).inner_text()
         print(f"Selected location: {selectedLocation}")
         return selectedLocation
+
+    def verify_suggestion_item_has_icon(self, index):
+
+        option = self.options.nth(index)
+        # Check if the option has an SVG icon
+        svg_count = option.locator("svg").count()
+        if svg_count > 0:
+            print(f"PASS: Suggestion item at index {index} has an icon.")
+            return True
+        else:
+            print(f"FAIL: Suggestion item at index {index} does NOT have an icon.")
+            return False
 
     def random_click_next_month(self):
         forward_buttons = self.page.get_by_role(
@@ -166,6 +180,11 @@ class LandingPage:
         childrenBtn = self.page.get_by_test_id("stepper-children-increase-button")
         infantsBtn = self.page.get_by_test_id("stepper-infants-increase-button")
         petsBtn = self.page.get_by_test_id("stepper-pets-increase-button")
+
+        adultsBtn.wait_for(state="visible", timeout=5000)
+        childrenBtn.wait_for(state="visible", timeout=5000)
+        infantsBtn.wait_for(state="visible", timeout=5000)
+        petsBtn.wait_for(state="visible", timeout=5000)
 
         # random click all buttons
         for _ in range(adults):
