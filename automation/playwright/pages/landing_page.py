@@ -10,6 +10,7 @@ class LandingPage:
         self.locationDiv = (
             self.page.locator("div").filter(has_text=re.compile(r"^Where$")).nth(1)
         )
+        self.guest_btn = self.page.get_by_role("button", name="Who Add guests")
 
         self.locationInput = self.page.get_by_test_id(
             "structured-search-input-field-query"
@@ -32,14 +33,16 @@ class LandingPage:
             .nth(1)
         )
 
-    def goto(
-        self,
-        url,
-    ):
-        # make sure network network reuest completes
-        self.page.goto(url, wait_until="domcontentloaded")
-
-
+    def goto(self, url):
+        """
+        Navigate to the URL and wait for DOM to load.
+        Returns True if page loads successfully, False otherwise.
+        """
+        try:
+            self.page.goto(url, wait_until="domcontentloaded")
+            return True
+        except Exception:
+            return False
 
     def handle_popups(self, timeout=5000):
         try:
@@ -182,6 +185,24 @@ class LandingPage:
             self.page.wait_for_timeout(500)
 
         return adults, children, infants, pets
+
+    def verify_guest_display(self, adults, children):
+        guest_btn_text = self.guest_btn.inner_text()
+
+        # Normalize: replace &nbsp; with regular space, remove extra whitespace
+        normalized_text = " ".join(guest_btn_text.split())
+
+        total_guests = adults + children
+
+        # Check for "X guest" or "X guests" (flexible)
+        guest_pattern = f"{total_guests}\\s+guest"
+
+        if not re.search(guest_pattern, normalized_text, re.IGNORECASE):
+            raise Exception(
+                f"Guest count not displayed correctly. Expected {total_guests} guests, got: {normalized_text}"
+            )
+
+        return True
 
     def makeSearch(self):
         searchBtn = self.page.get_by_test_id("structured-search-input-search-button")

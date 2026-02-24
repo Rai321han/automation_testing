@@ -10,6 +10,7 @@ class BrowserManager:
         self.browser = self.playwright.chromium.launch(headless=self.headless)
         self.context = self.browser.new_context()
         self.page = self.context.new_page()
+
         return self.page
 
     def __exit__(self, exc_type, exc_val, exc_tb):

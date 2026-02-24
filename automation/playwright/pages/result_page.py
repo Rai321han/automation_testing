@@ -79,7 +79,15 @@ class ResultPage:
             normalized = " ".join(raw_text.split())
 
             # Remove prefix safely
-            parsed_location = normalized.replace("Location Homes in ", "").strip()
+            # can be "Homes in X" or "Homes near X"
+            parsed_locationType1 = normalized.replace("Location Homes in ", "").strip()
+            parsed_locationType2 = normalized.replace(
+                "Location Homes near ", ""
+            ).strip()
+
+            parsed_location = (
+                parsed_locationType1 if parsed_locationType1 else parsed_locationType2
+            )
 
             if parsed_location not in location:
                 raise Exception(
@@ -88,19 +96,38 @@ class ResultPage:
             else:
                 print("PASS: Location is correctly displayed in the search summary")
 
-        # if check_in and check_out:
-        #     expected_date = (
-        #         f"{format_airbnb_date(check_in)} - {format_airbnb_date(check_out)}"
-        #     )
-        #     normalizedDate = " ".join(littleDate.inner_text().split())
-        #     if expected_date not in normalizedDate:
-        #         raise Exception(
-        #             f"Check-in and check-out dates not correctly displayed in search summary: {littleDate.inner_text()}"
-        #         )
-        #     else:
-        #         print(
-        #             "PASS: Check-in and check-out dates are correctly displayed in the search summary"
-        #         )
+        if check_in and check_out:
+            # Get the actual displayed text
+            littleDate = self.page.get_by_test_id("little-search-date")
+            normalizedDate = " ".join(littleDate.inner_text().split())
+
+            # Try multiple date formats
+            # Format 1: "Feb 28 - Mar 8" (with hyphen)
+            # Format 2: "Feb 28 – Mar 8" (with en-dash)
+            # Format 3: from format_airbnb_date()
+            check_in_month = check_in.strftime("%b").strip()
+            check_in_day = check_in.day
+            check_out_month = check_out.strftime("%b").strip()
+            check_out_day = check_out.day
+
+            # Try different dash characters
+            possible_formats = [
+                f"{check_in_month} {check_in_day} - {check_out_month} {check_out_day}",  # hyphen
+                f"{check_in_month} {check_in_day} – {check_out_month} {check_out_day}",  # en-dash
+                f"{check_in_month} {check_in_day} — {check_out_month} {check_out_day}",  # em-dash
+            ]
+
+            date_found = any(fmt in normalizedDate for fmt in possible_formats)
+
+            if not date_found:
+                raise Exception(
+                    f"Check-in and check-out dates not correctly displayed in search summary. "
+                    f"Expected one of {possible_formats}, got: {normalizedDate}"
+                )
+            else:
+                print(
+                    "PASS: Check-in and check-out dates are correctly displayed in the search summary"
+                )
 
         guest_count = 0
         if adults is not None:
